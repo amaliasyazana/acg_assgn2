@@ -5,17 +5,30 @@
 // Register custom A-Frame components for interactions
 AFRAME.registerComponent('gesture-detector', {
     init: function() {
+        // Touch events for mobile
         this.el.sceneEl.addEventListener('touchstart', this.onTouchStart.bind(this));
         this.el.sceneEl.addEventListener('touchend', this.onTouchEnd.bind(this));
+        
+        // Mouse events for desktop
+        this.el.sceneEl.addEventListener('mousedown', this.onMouseDown.bind(this));
+        this.el.sceneEl.addEventListener('mouseup', this.onMouseUp.bind(this));
+        
+        // Track if we're in a click action
+        this.isClicking = false;
     },
     
     onTouchStart: function(evt) {
         // Prevent default behavior to avoid scrolling
         evt.preventDefault();
+        this.isClicking = true;
     },
     
     onTouchEnd: function(evt) {
         if (evt.touches.length > 0) return;
+        
+        // Only process if we were clicking
+        if (!this.isClicking) return;
+        this.isClicking = false;
         
         // Get touch position
         const touch = evt.changedTouches[0];
@@ -23,6 +36,27 @@ AFRAME.registerComponent('gesture-detector', {
         // Convert touch to normalized device coordinates (-1 to +1)
         const x = (touch.clientX / window.innerWidth) * 2 - 1;
         const y = -(touch.clientY / window.innerHeight) * 2 + 1;
+        
+        // Emit raycaster-intersection event with the coordinates
+        this.el.emit('raycaster-intersection', {
+            x: x,
+            y: y
+        });
+    },
+    
+    onMouseDown: function(evt) {
+        // Track that we're starting a click
+        this.isClicking = true;
+    },
+    
+    onMouseUp: function(evt) {
+        // Only process if we were clicking
+        if (!this.isClicking) return;
+        this.isClicking = false;
+        
+        // Convert mouse position to normalized device coordinates (-1 to +1)
+        const x = (evt.clientX / window.innerWidth) * 2 - 1;
+        const y = -(evt.clientY / window.innerHeight) * 2 + 1;
         
         // Emit raycaster-intersection event with the coordinates
         this.el.emit('raycaster-intersection', {
@@ -83,7 +117,13 @@ const InteractionManager = {
         const scene = document.querySelector('a-scene');
         scene.setAttribute('raycaster-listener', '');
         
-        console.log('Interaction system initialized');
+        // Add cursor for desktop interaction
+        const cursor = document.createElement('a-entity');
+        cursor.setAttribute('cursor', 'rayOrigin: mouse');
+        cursor.setAttribute('raycaster', 'objects: .interactive');
+        scene.appendChild(cursor);
+        
+        console.log('Interaction system initialized with desktop support');
     },
     
     // Create a dialogue box

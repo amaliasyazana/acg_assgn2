@@ -3,19 +3,25 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Check if we're on a desktop environment
+    const isDesktop = !(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+    
     // Initialize the AR experience when the page loads
-    initARExperience();
+    initARExperience(isDesktop);
 });
 
 // Initialize the AR experience
-function initARExperience() {
+function initARExperience(isDesktop) {
     const scene = document.querySelector('a-scene');
     const loadingScreen = document.getElementById('loading-screen');
     const sceneInfo = document.getElementById('scene-info');
-
+    const fallbackUI = document.getElementById('fallback-ui');
+    const errorContainer = document.getElementById('error-container');
+    
     // Hide scene info and fallback UI initially
     sceneInfo.classList.add('hidden');
-
+    fallbackUI.classList.add('hidden');
+    
     // Track AR initialization status
     let arInitialized = false;
     let arErrorOccurred = false;
@@ -23,6 +29,13 @@ function initARExperience() {
     // Initialize managers
     InteractionManager.init();
     SceneManager.init();
+    
+    // If we're on desktop, show a message that we'll use non-AR mode
+    if (isDesktop) {
+        console.log('Desktop environment detected, enabling non-AR mode');
+        document.getElementById('error-message').textContent = 'Desktop environment detected. Using non-AR mode for development.';
+        errorContainer.style.display = 'block';
+    }
     
     // Listen for AR.js initialization
     scene.addEventListener('loaded', function() {
@@ -73,10 +86,8 @@ function initARExperience() {
     scene.addEventListener('ar-hit-test-failed', function() {
         console.error('Surface detection failed');
         arErrorOccurred = true;
-        const errorMsg = document.getElementById('error-message');
-        const errorContainer = document.getElementById('error-container');
-        if (errorMsg) errorMsg.textContent = 'Surface detection failed. Try pointing your camera at a different flat surface.';
-        if (errorContainer) errorContainer.style.display = 'block';
+        document.getElementById('error-message').textContent = 'Surface detection failed. Try pointing your camera at a different flat surface.';
+        document.getElementById('error-container').style.display = 'block';
     });
     
     // Fallback if AR doesn't initialize after a timeout
@@ -85,19 +96,30 @@ function initARExperience() {
             console.log('AR initialization timeout - offering fallback mode');
             
             // Show fallback UI if AR didn't initialize
+            fallbackUI.classList.remove('hidden');
             
             // If no specific error occurred, show a generic message
             if (!arErrorOccurred) {
-                const errorMsg = document.getElementById('error-message');
-                const errorContainer = document.getElementById('error-container');
-                if (errorMsg) errorMsg.textContent = 'AR initialization timed out. Your device may not support AR features.';
-                if (errorContainer) errorContainer.style.display = 'block';
+                document.getElementById('error-message').textContent = 'AR initialization timed out. Your device may not support AR features or requires additional permissions.';
+                document.getElementById('error-container').style.display = 'block';
+            }
+            
+            // For desktop environments, automatically start in non-AR mode
+            if (isDesktop) {
+                console.log('Auto-starting non-AR mode for desktop');
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                    document.querySelector('#fallback-scene').setAttribute('visible', 'true');
+                    fallbackUI.classList.add('hidden');
+                    SceneManager.setNonARMode(true);
+                    SceneManager.loadScene(0);
+                }, 2000);
             }
         }
-    }, 8000); // 8 second timeout
+    }, 5000); // Reduced to 5 second timeout for better user experience
     
-    // Force start in non-AR mode for development/testing
-    // Uncomment this to bypass AR and test the story flow directly
+    // For desktop environments, we'll use the auto-start in the timeout above
+    // This section is kept for manual testing if needed
     /*
     setTimeout(() => {
         loadingScreen.style.display = 'none';

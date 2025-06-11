@@ -10,7 +10,29 @@
     <script src="https://cdn.jsdelivr.net/npm/ar.js@2.3.4/aframe/build/aframe-ar.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
     <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
-
+    <!-- Add comprehensive error handling for AR initialization -->
+    <script>
+        // Global error handler
+        window.addEventListener('error', function(event) {
+            console.error('Error caught:', event.error);
+            document.getElementById('error-message').textContent = 'Error: ' + event.error.message;
+            document.getElementById('error-container').style.display = 'block';
+        });
+        
+        // Check for WebGL support
+        window.addEventListener('DOMContentLoaded', function() {
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (!gl) {
+                    document.getElementById('error-message').textContent = 'WebGL not supported. Please use a browser with WebGL support.';
+                    document.getElementById('error-container').style.display = 'block';
+                }
+            } catch (e) {
+                console.error('WebGL detection error:', e);
+            }
+        });
+    </script>
 </head>
 <body>
     <div id="loading-screen">
@@ -20,10 +42,21 @@
             <div class="loading-spinner"></div>
             <p class="loading-text">Loading AR Experience...</p>
             <p class="instructions">Please allow camera access and point your device at a flat surface.</p>
-
+            <div id="error-container" style="display: none; color: #ff4444; margin-top: 20px; padding: 10px; background-color: rgba(255,0,0,0.1); border-radius: 5px;">
+                <p>We encountered an issue starting the AR experience:</p>
+                <p id="error-message"></p>
+                <p>Try the following:</p>
+                <ul style="text-align: left; margin-left: 20px;">
+                    <li>Use a modern mobile device with AR capabilities</li>
+                    <li>Make sure you're using HTTPS or localhost</li>
+                    <li>Allow camera permissions when prompted</li>
+                    <li>Try a different browser (Chrome or Safari recommended)</li>
+                </ul>
+                <button id="retry-button" class="ar-button" style="margin-top: 15px;">Retry</button>
+            </div>
         </div>
     </div>
-<!--comment-->
+
     <div id="scene-info" class="hidden">
         <div id="scene-title"></div>
         <div id="scene-instructions"></div>
@@ -36,10 +69,16 @@
         renderer="logarithmicDepthBuffer: true; antialias: true; precision: mediump;"
         vr-mode-ui="enabled: false"
         gesture-detector
-        id="scene">
+        id="scene"
+        loading="autoStart: true; loadingMessage: Loading AR Experience; loadingImage: #loading-image; loadingColor: #4CAF50">
 
-        <!-- Camera with more permissive settings -->
-        <a-entity camera position="0 1.6 0" look-controls="enabled: false; reverseMouseDrag: true;"></a-entity>
+        <!-- Assets preload -->
+        <a-assets>
+            <img id="loading-image" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjUwIiBmaWxsPSIjNENBRjUwIi8+PC9zdmc+" crossorigin="anonymous">
+        </a-assets>
+
+        <!-- Camera with more permissive settings for both AR and non-AR modes -->
+        <a-entity camera position="0 1.6 0" look-controls="enabled: true; reverseMouseDrag: true;"></a-entity>
 
         <!-- AR Content will be added here via JavaScript -->
         <a-entity id="ar-content"></a-entity>
@@ -55,7 +94,14 @@
         </a-entity>
     </a-scene>
 
-
+    <!-- Fallback UI for non-AR mode -->
+    <div id="fallback-ui" class="hidden">
+        <div class="fallback-content">
+            <h2>AR Mode Unavailable</h2>
+            <p>We couldn't start the AR experience. You can still enjoy the story in non-AR mode.</p>
+            <button id="fallback-start" class="ar-button">Start Non-AR Experience</button>
+        </div>
+    </div>
     
     <!-- Custom Scripts -->
     <script src="js/models.js"></script>
@@ -63,6 +109,55 @@
     <script src="js/scenes.js"></script>
     <script src="js/main.js"></script>
     
-
+    <!-- Script to handle fallback mode -->
+    <script>
+        document.getElementById('retry-button').addEventListener('click', function() {
+            window.location.reload();
+        });
+        
+        document.getElementById('fallback-start').addEventListener('click', function() {
+            document.querySelector('#fallback-scene').setAttribute('visible', 'true');
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('fallback-ui').classList.add('hidden');
+            // Start the non-AR experience
+            SceneManager.setNonARMode(true);
+            SceneManager.loadScene(0);
+        });
+        
+        // After 5 seconds, if AR hasn't started, show fallback option
+        setTimeout(function() {
+            if (document.getElementById('loading-screen').style.display !== 'none') {
+                document.getElementById('fallback-ui').classList.remove('hidden');
+            }
+        }, 5000);
+        
+        // Handle keyboard controls for non-AR mode
+        document.addEventListener('keydown', function(event) {
+            // Only process in non-AR mode
+            if (SceneManager && SceneManager.nonARMode) {
+                const camera = document.querySelector('[camera]').object3D;
+                const speed = 0.1;
+                
+                switch(event.key) {
+                    case 'ArrowUp':
+                    case 'w':
+                        camera.position.z -= speed;
+                        break;
+                    case 'ArrowDown':
+                    case 's':
+                        camera.position.z += speed;
+                        break;
+                    case 'ArrowLeft':
+                    case 'a':
+                        camera.position.x -= speed;
+                        break;
+                    case 'ArrowRight':
+                    case 'd':
+                        camera.position.x += speed;
+                        break;
+                }
+            }
+        });
+    </script>
 </body>
 </html>
