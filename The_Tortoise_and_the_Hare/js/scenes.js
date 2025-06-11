@@ -340,14 +340,14 @@ const SceneManager = {
                 }
                 
                 // Create ground with longer path
-                const ground = ModelManager.createModelEntity('grassPatch', '0 0 0', '0 0 0', '2 1 2');
+                const ground = ModelManager.createModelEntity('grassPatch', '0 0 0', '0 0 0', '3 1 3');
                 arContent.appendChild(ground);
                 
                 const path = ModelManager.createModelEntity('dirtPath', '0 0.01 0', '0 90 0', '2 1 1');
                 arContent.appendChild(path);
                 
                 // Create tree for the hare to rest under
-                const tree = ModelManager.createModelEntity('tree', '0.5 0 -0.5', '0 45 0', '1.2 1.2 1.2');
+                const tree = ModelManager.createModelEntity('tree', '0.5 0 -0.5', '0 45 0', '0.007 0.007 0.007');
                 arContent.appendChild(tree);
                 
                 // Create hare in sleeping position under the tree

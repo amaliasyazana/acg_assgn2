@@ -29,34 +29,12 @@ const ModelManager = {
                 sleep: 'Sleep'
             }
         },
-        // Simple primitive-based models for missing assets
+        // Tree model
         tree: {
-            isPrimitive: true,
-            create: function(position, rotation, scale) {
-                const entity = document.createElement('a-entity');
-                entity.setAttribute('position', position || '0 0 0');
-                entity.setAttribute('rotation', rotation || '0 0 0');
-                
-                // Tree trunk
-                const trunk = document.createElement('a-cylinder');
-                trunk.setAttribute('height', '1');
-                trunk.setAttribute('radius', '0.1');
-                trunk.setAttribute('color', '#8B4513');
-                trunk.setAttribute('position', '0 0.5 0');
-                
-                // Tree top
-                const top = document.createElement('a-cone');
-                top.setAttribute('height', '1.5');
-                top.setAttribute('radius-bottom', '0.5');
-                top.setAttribute('radius-top', '0');
-                top.setAttribute('color', '#228B22');
-                top.setAttribute('position', '0 1.75 0');
-                
-                entity.appendChild(trunk);
-                entity.appendChild(top);
-                
-                return entity;
-            }
+            url: 'models/tree.glb',
+            scale: '0.007 0.007 0.007',
+            position: '0 0 0',
+            rotation: '0 0 0'
         },
         grassPatch: {
             isPrimitive: true,
