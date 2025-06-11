@@ -43,15 +43,7 @@
             <p class="loading-text">Loading AR Experience...</p>
             <p class="instructions">Please allow camera access and point your device at a flat surface.</p>
             <div id="error-container" style="display: none; color: #ff4444; margin-top: 20px; padding: 10px; background-color: rgba(255,0,0,0.1); border-radius: 5px;">
-                <p>We encountered an issue starting the AR experience:</p>
-                <p id="error-message"></p>
-                <p>Try the following:</p>
-                <ul style="text-align: left; margin-left: 20px;">
-                    <li>Use a modern mobile device with AR capabilities</li>
-                    <li>Make sure you're using HTTPS or localhost</li>
-                    <li>Allow camera permissions when prompted</li>
-                    <li>Try a different browser (Chrome or Safari recommended)</li>
-                </ul>
+                
                 <button id="retry-button" class="ar-button" style="margin-top: 15px;">Retry</button>
             </div>
         </div>
@@ -60,6 +52,15 @@
     <div id="scene-info" class="hidden">
         <div id="scene-title"></div>
         <div id="scene-instructions"></div>
+    </div>
+
+    <div id="navigation-buttons" class="hidden">
+        <div id="prev-scene-button">
+            <button class="ar-button">Previous Scene</button>
+        </div>
+        <div id="next-scene-button">
+            <button class="ar-button">Next Scene</button>
+        </div>
     </div>
 
     <!-- AR Scene -->

@@ -94,6 +94,12 @@ const ModelManager = {
                 
                 return entity;
             }
+        },
+        finish: {
+            url: 'models/finish.glb',
+            scale: '0.3 0.3 0.3',
+            position: '0 0 0',
+            rotation: '0 0 0'
         }
     },
 

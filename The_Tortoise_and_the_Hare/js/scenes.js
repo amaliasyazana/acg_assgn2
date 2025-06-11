@@ -34,12 +34,12 @@ const SceneManager = {
                 arContent.appendChild(tree);
                 
                 // Create tortoise
-                const tortoise = ModelManager.createModelEntity('tortoise', '-0.5 0.3 0', '0 90 0');
+                const tortoise = ModelManager.createModelEntity('tortoise', '-0.6 0.3 0', '0 90 0');
                 ModelManager.playAnimation('tortoise', 'idle');
                 arContent.appendChild(tortoise);
                 
                 // Create hare
-                const hare = ModelManager.createModelEntity('hare', '0.5 0.5 0', '0 -90 0');
+                const hare = ModelManager.createModelEntity('hare', '0.5 0 0', '0 -90 0');
                 ModelManager.playAnimation('hare', 'idle');
                 arContent.appendChild(hare);
                 
@@ -142,7 +142,7 @@ const SceneManager = {
                 arContent.appendChild(tortoise);
                 
                 // Create hare at starting position - positioned to the other side
-                const hare = ModelManager.createModelEntity('hare', '-0.8 0.5 -0.6', '0 90 0');
+                const hare = ModelManager.createModelEntity('hare', '-0.8 0.0 -0.6', '0 90 0');
                 arContent.appendChild(hare);
                 
                 // Update scene info
@@ -162,7 +162,7 @@ const SceneManager = {
                     ModelManager.playAnimation('tortoise', 'walk');
                     
                     // Move the hare quickly - maintaining z-axis position
-                    this.moveModel('hare', '-0.8 0.5 -0.6', '1 0.5 -0.6', 3000);
+                    this.moveModel('hare', '-0.8 0.0 -0.6', '1 0 -0.6', 3000);
                     
                     // Move the tortoise slowly - maintaining z-axis position
                     this.moveModel('tortoise', '-1 0.3 0.6', '-0.5 0.3 0.6', 6000);
@@ -351,7 +351,7 @@ const SceneManager = {
                 arContent.appendChild(tree);
                 
                 // Create hare in sleeping position under the tree
-                const hare = ModelManager.createModelEntity('hare', '0.5 0.5 -0.3', '0 -45 0');
+                const hare = ModelManager.createModelEntity('hare', '0.5 0.0 -0.3', '0 -45 0');
                 hare.setAttribute('id', 'hare-model');
                 ModelManager.playAnimation('hare', 'sleep'); // Start with sleeping animation
                 arContent.appendChild(hare);
@@ -511,9 +511,269 @@ const SceneManager = {
             },
             
             nextScene: function() {
-                // Move to Scene 5 when implemented
-                // For now, loop back to first scene
+                // Move to Scene 5
+                SceneManager.loadScene(4);
+            }
+        },
+
+        // Scene 5: The Finish Line
+        {
+            id: 'finish-line',
+            title: 'Scene 5: The Finish Line',
+            instructions: 'Tap on the finish line',
+            setup: function(arContent) {
+                // Clear previous content
+                while (arContent.firstChild) {
+                    arContent.removeChild(arContent.firstChild);
+                }
+                
+                // Create ground with longer path
+                const ground = ModelManager.createModelEntity('grassPatch', '0 0 0', '0 0 0', '2 1 2');
+                arContent.appendChild(ground);
+                
+                const path = ModelManager.createModelEntity('dirtPath', '0 0.01 0', '0 90 0', '2 1 1');
+                arContent.appendChild(path);
+                
+                // Create finish line
+                const finishLine = ModelManager.createModelEntity('finish', '0.5 0.5 0', '0 -90 0', '0.25 0.25 0.25');
+                finishLine.setAttribute('id', 'finish-line-model');
+                finishLine.setAttribute('class', 'interactive');
+                finishLine.addEventListener('click', () => this.animateRaceFinish(arContent));
+                arContent.appendChild(finishLine);
+                
+                // Create tortoise at starting position - facing right direction
+                const tortoise = ModelManager.createModelEntity('tortoise', '-1.1 0.3 0.2', '0 90 0');
+                tortoise.setAttribute('id', 'tortoise-model');
+                ModelManager.playAnimation('tortoise', 'idle'); 
+                arContent.appendChild(tortoise);
+                
+                // Create hare at starting position - facing right direction
+                const hare = ModelManager.createModelEntity('hare', '-1.5 0.0 -0.2', '0 90 0');
+                hare.setAttribute('id', 'hare-model');
+                ModelManager.playAnimation('hare', 'idle');
+                arContent.appendChild(hare);
+                
+                // Update scene info
+                document.getElementById('scene-title').textContent = this.title;
+                document.getElementById('scene-instructions').textContent = 'Tap on the finish line to start the final race!';
+            },
+            
+            // Animate both tortoise and hare racing to the finish line
+            animateRaceFinish: function(arContent) {
+                const tortoise = document.getElementById('tortoise-model');
+                const hare = document.getElementById('hare-model');
+                
+                // Start positions
+                const tortoiseStartPos = '-1.1 0.3 0.2';
+                const hareStartPos = '-1.5 0.0 -0.2';
+                
+                // End positions - tortoise crosses finish line, hare just behind
+                const tortoiseEndPos = '1.5 0.3 0.2'; // Past the finish line
+                const hareEndPos = '1.0 0.0 -0.2'; // Just before finish line
+                
+                // Set initial positions and animations
+                tortoise.setAttribute('position', tortoiseStartPos);
+                hare.setAttribute('position', hareStartPos);
+                
+                // Force animations to play
+                setTimeout(() => {
+                    ModelManager.playAnimation('tortoise', 'walk');
+                    ModelManager.playAnimation('hare', 'run');
+                }, 100);
+                
+                // Parse positions to arrays for animation
+                const tortoiseStartArray = tortoiseStartPos.split(' ').map(Number);
+                const tortoiseEndArray = tortoiseEndPos.split(' ').map(Number);
+                const hareStartArray = hareStartPos.split(' ').map(Number);
+                const hareEndArray = hareEndPos.split(' ').map(Number);
+                
+                const startTime = Date.now();
+                const duration = 5000; // 5 seconds for the race
+                
+                const animate = () => {
+                    const now = Date.now();
+                    const elapsed = now - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    // Tortoise moves steadily
+                    const tortoiseProgress = progress;
+                    const tortoisePos = tortoiseStartArray.map((start, i) => 
+                        start + (tortoiseEndArray[i] - start) * tortoiseProgress
+                    );
+                    tortoise.setAttribute('position', tortoisePos.join(' '));
+                    
+                    // Hare moves quickly at first, then slows down (simulating overconfidence)
+                    let hareProgress;
+                    if (progress < 0.6) {
+                        // Hare moves faster at first
+                        hareProgress = progress * 1.0;
+                    } else {
+                        // Then slows down dramatically
+                        hareProgress = 1.0 + (progress - 0.6) * 0.25;
+                    }
+                    hareProgress = Math.min(hareProgress, 1);
+                    
+                    const harePos = hareStartArray.map((start, i) => 
+                        start + (hareEndArray[i] - start) * hareProgress
+                    );
+                    hare.setAttribute('position', harePos.join(' '));
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        // Race finished - change animations
+                        ModelManager.playAnimation('tortoise', 'idle'); // Proud stance
+                        ModelManager.playAnimation('hare', 'idle'); // Exhausted
+                        
+                        // Show narration after race completes
+                        this.showFinishNarration(arContent);
+                    }
+                };
+                
+                animate();
+            },
+            
+            // Show narration after race finishes
+            showFinishNarration: function(arContent) {
+                // Play narration
+                InteractionManager.createNarration(
+                    "And just like that, Tortoise crosses the finish line, steady and calm. Hare arrives just moments later, surprised and exhausted.",
+                    '0 1.5 0',
+                    6000
+                ).then(() => {
+                    // Show tortoise dialogue
+                    return InteractionManager.createDialogue(
+                        'Tortoise',
+                        "Slow and steady wins the race!",
+                        '0.7 1 0.2',
+                        4000
+                    );
+                }).then(() => {
+                    // Show hare dialogue
+                    return InteractionManager.createDialogue(
+                        'Hare',
+                        "I... I should've kept going!",
+                        '0.4 1 -0.2',
+                        4000
+                    );
+                }).then(() => {
+                    // Show continue button
+                    const continueButton = ModelManager.createButtonEntity(
+                        'Continue',
+                        '0 0.8 0',
+                        () => this.nextScene()
+                    );
+                    arContent.appendChild(continueButton);
+                });
+            },
+            
+            nextScene: function() {
+                // Move to Scene 6: Moral & Ending
+                SceneManager.loadScene(5);
+            }
+        },
+        
+        // Scene 6: Moral & Ending
+        {
+            id: 'moral-ending',
+            title: 'Scene 6: Moral & Ending',
+            instructions: 'Tap on the quote board',
+            setup: function(arContent) {
+                // Clear previous content
+                while (arContent.firstChild) {
+                    arContent.removeChild(arContent.firstChild);
+                }
+                
+                // Create ground
+                const ground = ModelManager.createModelEntity('grassPatch', '0 0 0', '0 0 0', '2 1 2');
+                arContent.appendChild(ground);
+                
+                // Create tortoise and hare standing side by side
+                const tortoise = ModelManager.createModelEntity('tortoise', '-0.6 0.3 0', '0 45 0');
+                tortoise.setAttribute('id', 'tortoise-model');
+                ModelManager.playAnimation('tortoise', 'idle');
+                arContent.appendChild(tortoise);
+                
+                const hare = ModelManager.createModelEntity('hare', '0.6 0.0 0', '0 -45 0');
+                hare.setAttribute('id', 'hare-model');
+                ModelManager.playAnimation('hare', 'idle');
+                arContent.appendChild(hare);
+                
+                // Create quote board
+                const quoteBoard = document.createElement('a-entity');
+                quoteBoard.setAttribute('position', '0 1.2 0');
+                quoteBoard.setAttribute('geometry', 'primitive: plane; width: 1.5; height: 0.8');
+                quoteBoard.setAttribute('material', 'color: #f5f5dc; opacity: 0.9');
+                quoteBoard.setAttribute('class', 'interactive');
+                quoteBoard.setAttribute('id', 'quote-board');
+                quoteBoard.addEventListener('click', () => this.showMoral(arContent));
+                
+                // Add text to the quote board
+                const quoteText = document.createElement('a-text');
+                quoteText.setAttribute('value', 'Tap to reveal the moral');
+                quoteText.setAttribute('align', 'center');
+                quoteText.setAttribute('position', '0 0 0.01');
+                quoteText.setAttribute('color', '#333');
+                quoteText.setAttribute('width', '1.4');
+                quoteText.setAttribute('id', 'quote-text');
+                
+                quoteBoard.appendChild(quoteText);
+                arContent.appendChild(quoteBoard);
+                
+                // Update scene info
+                document.getElementById('scene-title').textContent = this.title;
+                document.getElementById('scene-instructions').textContent = this.instructions;
+                document.getElementById('scene-info').classList.remove('hidden');
+            },
+            
+            // Show moral when quote board is tapped
+            showMoral: function(arContent) {
+                // Update the quote text
+                const quoteText = document.getElementById('quote-text');
+                quoteText.setAttribute('value', 'The race doesn\'t always go to the fastest, but to those who keep going.');
+                
+                // Create replay and exit buttons
+                setTimeout(() => {
+                    // Create replay button
+                    const replayButton = ModelManager.createButtonEntity(
+                        'Replay',
+                        '-0.4 0.5 0',
+                        () => this.replayStory()
+                    );
+                    replayButton.setAttribute('id', 'replay-button');
+                    arContent.appendChild(replayButton);
+                    
+                    // Create exit button
+                    const exitButton = ModelManager.createButtonEntity(
+                        'Exit',
+                        '0.4 0.5 0',
+                        () => this.exitStory(arContent)
+                    );
+                    exitButton.setAttribute('id', 'exit-button');
+                    arContent.appendChild(exitButton);
+                }, 3000);
+            },
+            
+            // Replay the story from the beginning
+            replayStory: function() {
                 SceneManager.loadScene(0);
+            },
+            
+            // Exit the story with a thank you message
+            exitStory: function(arContent) {
+                // Clear the scene
+                while (arContent.firstChild) {
+                    arContent.removeChild(arContent.firstChild);
+                }
+                
+                // Show thank you message
+                const thankYouMessage = document.createElement('a-entity');
+                thankYouMessage.setAttribute('position', '0 1.5 0');
+                thankYouMessage.setAttribute('text', 'value: Thanks for playing!; align: center; width: 3; color: #4CAF50');
+                arContent.appendChild(thankYouMessage);
+                
+                // Hide scene info
+                document.getElementById('scene-info').classList.add('hidden');
             }
         }
     ],
@@ -521,6 +781,39 @@ const SceneManager = {
     // Initialize the scene manager
     init: function() {
         console.log('Scene Manager initialized');
+        this.setupNextSceneButton();
+    },
+    
+    // Set up the navigation buttons
+    setupNextSceneButton: function() {
+        // Set up Next Scene button
+        const nextSceneButton = document.querySelector('#next-scene-button button');
+        if (nextSceneButton) {
+            nextSceneButton.addEventListener('click', () => {
+                if (this.currentScene < this.scenes.length - 1) {
+                    this.loadScene(this.currentScene + 1);
+                } else {
+                    // Loop back to first scene if at the end
+                    this.loadScene(0);
+                }
+            });
+        }
+        
+        // Set up Previous Scene button
+        const prevSceneButton = document.querySelector('#prev-scene-button button');
+        if (prevSceneButton) {
+            prevSceneButton.addEventListener('click', () => {
+                if (this.currentScene > 0) {
+                    this.loadScene(this.currentScene - 1);
+                } else {
+                    // Loop to last scene if at the beginning
+                    this.loadScene(this.scenes.length - 1);
+                }
+            });
+        }
+        
+        // Show the navigation buttons after initialization
+        document.getElementById('navigation-buttons').classList.remove('hidden');
     },
     
     // Set non-AR mode
