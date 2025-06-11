@@ -324,6 +324,195 @@ const SceneManager = {
             nextScene: function() {
                 // Move to Scene 4 when implemented
                 // For now, loop back to first scene
+                SceneManager.loadScene(3);
+            }
+        },
+        
+        // Scene 4: The Nap Scene - You Decide
+        {
+            id: 'nap-scene',
+            title: 'Scene 4: The Nap Scene – You Decide',
+            instructions: 'Choose what happens next',
+            setup: function(arContent) {
+                // Clear previous content
+                while (arContent.firstChild) {
+                    arContent.removeChild(arContent.firstChild);
+                }
+                
+                // Create ground with longer path
+                const ground = ModelManager.createModelEntity('grassPatch', '0 0 0', '0 0 0', '2 1 2');
+                arContent.appendChild(ground);
+                
+                const path = ModelManager.createModelEntity('dirtPath', '0 0.01 0', '0 90 0', '2 1 1');
+                arContent.appendChild(path);
+                
+                // Create tree for the hare to rest under
+                const tree = ModelManager.createModelEntity('tree', '0.5 0 -0.5', '0 45 0', '1.2 1.2 1.2');
+                arContent.appendChild(tree);
+                
+                // Create hare in sleeping position under the tree
+                const hare = ModelManager.createModelEntity('hare', '0.5 0.5 -0.3', '0 -45 0');
+                hare.setAttribute('id', 'hare-model');
+                ModelManager.playAnimation('hare', 'sleep'); // Start with sleeping animation
+                arContent.appendChild(hare);
+                
+                // Create tortoise approaching
+                const tortoise = ModelManager.createModelEntity('tortoise', '-0.5 0.3 0.3', '0 90 0');
+                tortoise.setAttribute('id', 'tortoise-model');
+                tortoise.setAttribute('class', 'scene4-tortoise'); // Add a class for easier selection
+                ModelManager.playAnimation('tortoise', 'walk'); // Walking animation
+                arContent.appendChild(tortoise);
+                
+                // Update scene info
+                document.getElementById('scene-title').textContent = this.title;
+                document.getElementById('scene-instructions').textContent = this.instructions;
+                
+                // Start the scene with narration
+                InteractionManager.createNarration(
+                    "Hare, tired from his fast start, takes a nap, while Tortoise moves steadily forward.",
+                    '0 1.5 0',
+                    6000
+                ).then(() => {
+                    // Create interactive choice buttons
+                    this.showChoiceButtons(arContent);
+                });
+            },
+            
+            // Show the interactive choice buttons
+            showChoiceButtons: function(arContent) {
+                // Create "Let Hare Sleep" button
+                const sleepButton = ModelManager.createButtonEntity(
+                    'Let Hare Sleep',
+                    '-0.3 1 0',
+                    () => this.letHareSleep(arContent)
+                );
+                sleepButton.setAttribute('id', 'sleep-button');
+                arContent.appendChild(sleepButton);
+                
+                // Create "Cheer for Tortoise" button
+                const cheerButton = ModelManager.createButtonEntity(
+                    'Cheer for Tortoise',
+                    '0.3 1 0',
+                    () => this.cheerForTortoise(arContent)
+                );
+                cheerButton.setAttribute('id', 'cheer-button');
+                arContent.appendChild(cheerButton);
+            },
+            
+            // Handle the "Let Hare Sleep" choice
+            letHareSleep: function(arContent) {
+                // Remove choice buttons
+                this.removeChoiceButtons();
+                
+                // Play snore sound effect
+                this.playSound('sounds/snore.wav');
+                
+                // Show narration about the choice
+                InteractionManager.createNarration(
+                    "The Hare continues to sleep soundly...",
+                    '0 1.5 0',
+                    4000
+                ).then(() => {
+                    // Show the choice buttons again after a delay
+                    setTimeout(() => {
+                        this.showChoiceButtons(arContent);
+                    }, 2000);
+                });
+            },
+            
+            // Handle the "Cheer for Tortoise" choice
+            cheerForTortoise: function(arContent) {
+                // Remove choice buttons
+                this.removeChoiceButtons();
+                
+                // Play cheer sound effect
+                this.playSound('sounds/cheer.wav');
+                
+                // Move tortoise past the sleeping hare
+                // Find the tortoise using the class selector instead of ID
+                const tortoise = document.querySelector('.scene4-tortoise');
+                
+                if (!tortoise) {
+                    console.error('Could not find tortoise model');
+                    return;
+                }
+                
+                console.log('Moving tortoise:', tortoise);
+                
+                // Define start and end positions explicitly
+                const startPos = '-0.5 0.3 0.3';
+                const endPos = '0.8 0.3 0.3';
+                const duration = 5000; // 5 seconds for movement
+                
+                // Set initial position to make sure we start from the right place
+                tortoise.setAttribute('position', startPos);
+                
+                const startPosArray = startPos.split(' ').map(Number);
+                const endPosArray = endPos.split(' ').map(Number);
+                const startTime = Date.now();
+                
+                // Make sure the tortoise is visible and walking
+                tortoise.setAttribute('visible', 'true');
+                ModelManager.playAnimation('tortoise', 'walk');
+                
+                const animate = () => {
+                    const now = Date.now();
+                    const elapsed = now - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    const currentPos = startPosArray.map((start, i) => 
+                        start + (endPosArray[i] - start) * progress
+                    );
+                    
+                    tortoise.setAttribute('position', currentPos.join(' '));
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        // Show narration about the choice
+                        InteractionManager.createNarration(
+                            "The Tortoise moves ahead while the Hare sleeps!",
+                            '0 1.5 0',
+                            4000
+                        ).then(() => {
+                            // Show continue button that transitions to next scene
+                            const continueButton = ModelManager.createButtonEntity(
+                                'Continue to Next Scene',
+                                '0 0.8 0',
+                                () => this.nextScene()
+                            );
+                            arContent.appendChild(continueButton);
+                        });
+                    }
+                };
+                
+                animate();
+            },
+            
+            // Helper function to remove choice buttons
+            removeChoiceButtons: function() {
+                const sleepButton = document.getElementById('sleep-button');
+                const cheerButton = document.getElementById('cheer-button');
+                
+                if (sleepButton) sleepButton.parentNode.removeChild(sleepButton);
+                if (cheerButton) cheerButton.parentNode.removeChild(cheerButton);
+            },
+            
+            // Helper function to play sound effects
+            playSound: function(soundFile) {
+                // Create audio element
+                const audio = new Audio(soundFile);
+                audio.volume = 0.5; // Set volume to 50%
+                
+                // Play the sound
+                audio.play().catch(error => {
+                    console.error('Error playing sound:', error);
+                });
+            },
+            
+            nextScene: function() {
+                // Move to Scene 5 when implemented
+                // For now, loop back to first scene
                 SceneManager.loadScene(0);
             }
         }
