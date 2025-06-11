@@ -34,12 +34,12 @@ const SceneManager = {
                 arContent.appendChild(tree);
                 
                 // Create tortoise
-                const tortoise = ModelManager.createModelEntity('tortoise', '-0.5 0 0', '0 90 0');
+                const tortoise = ModelManager.createModelEntity('tortoise', '-0.5 0.3 0', '0 90 0');
                 ModelManager.playAnimation('tortoise', 'idle');
                 arContent.appendChild(tortoise);
                 
                 // Create hare
-                const hare = ModelManager.createModelEntity('hare', '0.5 0 0', '0 -90 0');
+                const hare = ModelManager.createModelEntity('hare', '0.5 0.5 0', '0 -90 0');
                 ModelManager.playAnimation('hare', 'idle');
                 arContent.appendChild(hare);
                 
@@ -137,12 +137,12 @@ const SceneManager = {
                 const tree2 = ModelManager.createModelEntity('tree', '1 0 -1', '0 -30 0');
                 arContent.appendChild(tree2);
                 
-                // Create tortoise at starting position
-                const tortoise = ModelManager.createModelEntity('tortoise', '-1 0 0', '0 90 0');
+                // Create tortoise at starting position - positioned to the side
+                const tortoise = ModelManager.createModelEntity('tortoise', '-1 0.3 0.6', '0 90 0');
                 arContent.appendChild(tortoise);
                 
-                // Create hare at starting position
-                const hare = ModelManager.createModelEntity('hare', '-0.8 0 0', '0 90 0');
+                // Create hare at starting position - positioned to the other side
+                const hare = ModelManager.createModelEntity('hare', '-0.8 0.5 -0.6', '0 90 0');
                 arContent.appendChild(hare);
                 
                 // Update scene info
@@ -161,11 +161,11 @@ const SceneManager = {
                     // Animate the tortoise walking
                     ModelManager.playAnimation('tortoise', 'walk');
                     
-                    // Move the hare quickly
-                    this.moveModel('hare', '-0.8 0 0', '1 0 0', 3000);
+                    // Move the hare quickly - maintaining z-axis position
+                    this.moveModel('hare', '-0.8 0.5 -0.6', '1 0.5 -0.6', 3000);
                     
-                    // Move the tortoise slowly
-                    this.moveModel('tortoise', '-1 0 0', '-0.5 0 0', 6000);
+                    // Move the tortoise slowly - maintaining z-axis position
+                    this.moveModel('tortoise', '-1 0.3 0.6', '-0.5 0.3 0.6', 6000);
                     
                     // After animations, show continue button
                     setTimeout(() => {
@@ -214,32 +214,117 @@ const SceneManager = {
         // Additional scenes would be defined here...
         // For now, I'm implementing just the first scene in detail as requested
         
-        // Placeholder for Scene 3
+        // Scene 3: Tortoise Keeps Going
         {
-            id: 'scene3',
-            title: 'Scene 3: The Hare Takes a Break',
-            instructions: 'Coming soon...',
+            id: 'tortoise-keeps-going',
+            title: 'Scene 3: Tortoise Keeps Going',
+            instructions: 'Tap on Tortoise to hear his thoughts',
             setup: function(arContent) {
-                // Placeholder for future implementation
-                const placeholderText = ModelManager.createTextEntity(
-                    'Scene 3: Coming Soon',
-                    '0 1 0',
-                    '0 0 0',
-                    '#FFFFFF',
-                    2
-                );
-                arContent.appendChild(placeholderText);
+                // Clear previous content
+                while (arContent.firstChild) {
+                    arContent.removeChild(arContent.firstChild);
+                }
                 
-                // Continue button
-                const continueButton = ModelManager.createButtonEntity(
-                    'Continue',
-                    '0 0.5 0',
-                    () => this.nextScene()
-                );
-                arContent.appendChild(continueButton);
+                // Create ground with longer path
+                const ground = ModelManager.createModelEntity('grassPatch', '0 0 0', '0 0 0', '2 1 2');
+                arContent.appendChild(ground);
+                
+                const path = ModelManager.createModelEntity('dirtPath', '0 0.01 0', '0 90 0', '2 1 1');
+                arContent.appendChild(path);
+                
+                // Create trees for scenery
+                const tree1 = ModelManager.createModelEntity('tree', '-1 0 -1', '0 45 0');
+                arContent.appendChild(tree1);
+                
+                const tree2 = ModelManager.createModelEntity('tree', '1 0 -1', '0 -30 0');
+                arContent.appendChild(tree2);
+                
+                // Create tortoise in the middle of the path
+                const tortoise = ModelManager.createModelEntity('tortoise', '-0.5 0.3 0', '0 90 0');
+                tortoise.setAttribute('class', 'interactive'); // Make tortoise interactive for tapping
+                tortoise.setAttribute('id', 'tortoise-model');
+                ModelManager.playAnimation('tortoise', 'walk'); // Start with walking animation
+                arContent.appendChild(tortoise);
+                
+                // Add click event listener to tortoise
+                tortoise.addEventListener('click', () => {
+                    this.showTortoiseThoughts(arContent);
+                });
+                
+                // Update scene info
+                document.getElementById('scene-title').textContent = this.title;
+                document.getElementById('scene-instructions').textContent = this.instructions;
+                
+                // Start the scene with narration
+                InteractionManager.createNarration(
+                    "As Hare speeds ahead, Tortoise stays focused, moving at his own pace.",
+                    '0 1.5 0',
+                    6000
+                ).then(() => {
+                    // Start tortoise movement animation
+                    this.animateTortoiseMovement();
+                });
             },
+            
+            // Show tortoise thoughts when tapped
+            showTortoiseThoughts: function(arContent) {
+                // Play tortoise animation
+                ModelManager.playAnimation('tortoise', 'blink');
+                
+                // Show tortoise dialogue
+                InteractionManager.createDialogue(
+                    'Tortoise',
+                    "No rush. I'll just keep moving forward.",
+                    '-0.5 1 0',
+                    5000
+                ).then(() => {
+                    // Resume walking animation
+                    ModelManager.playAnimation('tortoise', 'walk');
+                });
+            },
+            
+            // Animate the tortoise moving forward slowly
+            animateTortoiseMovement: function() {
+                const tortoise = document.getElementById('tortoise-model');
+                const startPos = '-0.5 0.3 0';
+                const endPos = '0.5 0.3 0';
+                const duration = 10000; // 10 seconds for slow movement
+                
+                const startTime = Date.now();
+                const startPosArray = startPos.split(' ').map(Number);
+                const endPosArray = endPos.split(' ').map(Number);
+                
+                const animate = () => {
+                    const now = Date.now();
+                    const elapsed = now - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    const currentPos = startPosArray.map((start, i) => 
+                        start + (endPosArray[i] - start) * progress
+                    );
+                    
+                    tortoise.setAttribute('position', currentPos.join(' '));
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        // When animation completes, show continue button
+                        const continueButton = ModelManager.createButtonEntity(
+                            'Continue',
+                            '0 0.8 0',
+                            () => this.nextScene()
+                        );
+                        document.querySelector('#ar-content').appendChild(continueButton);
+                    }
+                };
+                
+                animate();
+            },
+            
             nextScene: function() {
-                SceneManager.loadScene(0); // Loop back to first scene for now
+                // Move to Scene 4 when implemented
+                // For now, loop back to first scene
+                SceneManager.loadScene(0);
             }
         }
     ],
