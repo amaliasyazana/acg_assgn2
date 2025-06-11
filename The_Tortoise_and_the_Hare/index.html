@@ -65,8 +65,8 @@
     <!-- AR Scene -->
     <a-scene 
         embedded
-        arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
-        renderer="logarithmicDepthBuffer: true; antialias: true; precision: mediump;"
+        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono; trackingMethod: best; cameraParametersUrl: data/camera_para.dat;"
+        renderer="logarithmicDepthBuffer: true; antialias: true; precision: mediump; alpha: true;"
         vr-mode-ui="enabled: false"
         gesture-detector
         id="scene"
@@ -77,8 +77,8 @@
             <img id="loading-image" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjUwIiBmaWxsPSIjNENBRjUwIi8+PC9zdmc+" crossorigin="anonymous">
         </a-assets>
 
-        <!-- Camera with more permissive settings for both AR and non-AR modes -->
-        <a-entity camera position="0 1.6 0" look-controls="enabled: true; reverseMouseDrag: true;"></a-entity>
+        <!-- AR Camera with proper settings for webcam passthrough -->
+        <a-entity camera look-controls wasd-controls position="0 1.6 0"></a-entity>
 
         <!-- AR Content will be added here via JavaScript -->
         <a-entity id="ar-content"></a-entity>
@@ -94,14 +94,6 @@
         </a-entity>
     </a-scene>
 
-    <!-- Fallback UI for non-AR mode -->
-    <div id="fallback-ui" class="hidden">
-        <div class="fallback-content">
-            <h2>AR Mode Unavailable</h2>
-            <p>We couldn't start the AR experience. You can still enjoy the story in non-AR mode.</p>
-            <button id="fallback-start" class="ar-button">Start Non-AR Experience</button>
-        </div>
-    </div>
     
     <!-- Custom Scripts -->
     <script src="js/models.js"></script>
