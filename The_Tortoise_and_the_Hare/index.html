@@ -10,14 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/ar.js@2.3.4/aframe/build/aframe-ar.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
     <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
-    <!-- Add error handling for AR initialization -->
-    <script>
-        window.addEventListener('error', function(event) {
-            console.error('Error caught:', event.error);
-            document.getElementById('error-message').textContent = 'Error: ' + event.error.message;
-            document.getElementById('error-container').style.display = 'block';
-        });
-    </script>
+
 </head>
 <body>
     <div id="loading-screen">
@@ -27,18 +20,7 @@
             <div class="loading-spinner"></div>
             <p class="loading-text">Loading AR Experience...</p>
             <p class="instructions">Please allow camera access and point your device at a flat surface.</p>
-            <div id="error-container" style="display: none; color: #ff4444; margin-top: 20px; padding: 10px; background-color: rgba(255,0,0,0.1); border-radius: 5px;">
-                <p>We encountered an issue starting the AR experience:</p>
-                <p id="error-message"></p>
-                <p>Try the following:</p>
-                <ul style="text-align: left; margin-left: 20px;">
-                    <li>Use a modern mobile device with AR capabilities</li>
-                    <li>Make sure you're using HTTPS or localhost</li>
-                    <li>Allow camera permissions when prompted</li>
-                    <li>Try a different browser (Chrome or Safari recommended)</li>
-                </ul>
-                <button id="retry-button" class="ar-button" style="margin-top: 15px;">Retry</button>
-            </div>
+
         </div>
     </div>
 <!--comment-->
@@ -73,14 +55,7 @@
         </a-entity>
     </a-scene>
 
-    <!-- Fallback UI for non-AR mode -->
-    <div id="fallback-ui" class="hidden">
-        <div class="fallback-content">
-            <h2>AR Mode Unavailable</h2>
-            <p>We couldn't start the AR experience. You can still enjoy the story in non-AR mode.</p>
-            <button id="fallback-start" class="ar-button">Start Non-AR Experience</button>
-        </div>
-    </div>
+
     
     <!-- Custom Scripts -->
     <script src="js/models.js"></script>
@@ -88,26 +63,6 @@
     <script src="js/scenes.js"></script>
     <script src="js/main.js"></script>
     
-    <!-- Script to handle fallback mode -->
-    <script>
-        document.getElementById('retry-button').addEventListener('click', function() {
-            window.location.reload();
-        });
-        
-        document.getElementById('fallback-start').addEventListener('click', function() {
-            document.querySelector('#fallback-scene').setAttribute('visible', 'true');
-            document.getElementById('fallback-ui').classList.add('hidden');
-            // Start the non-AR experience
-            SceneManager.setNonARMode(true);
-            SceneManager.loadScene(0);
-        });
-        
-        // After 10 seconds, if AR hasn't started, show fallback option
-        setTimeout(function() {
-            if (document.getElementById('loading-screen').style.display !== 'none') {
-                document.getElementById('fallback-ui').classList.remove('hidden');
-            }
-        }, 10000);
-    </script>
+
 </body>
 </html>

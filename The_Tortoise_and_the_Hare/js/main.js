@@ -12,12 +12,10 @@ function initARExperience() {
     const scene = document.querySelector('a-scene');
     const loadingScreen = document.getElementById('loading-screen');
     const sceneInfo = document.getElementById('scene-info');
-    const fallbackUI = document.getElementById('fallback-ui');
-    
+
     // Hide scene info and fallback UI initially
     sceneInfo.classList.add('hidden');
-    fallbackUI.classList.add('hidden');
-    
+
     // Track AR initialization status
     let arInitialized = false;
     let arErrorOccurred = false;
@@ -75,8 +73,10 @@ function initARExperience() {
     scene.addEventListener('ar-hit-test-failed', function() {
         console.error('Surface detection failed');
         arErrorOccurred = true;
-        document.getElementById('error-message').textContent = 'Surface detection failed. Try pointing your camera at a different flat surface.';
-        document.getElementById('error-container').style.display = 'block';
+        const errorMsg = document.getElementById('error-message');
+        const errorContainer = document.getElementById('error-container');
+        if (errorMsg) errorMsg.textContent = 'Surface detection failed. Try pointing your camera at a different flat surface.';
+        if (errorContainer) errorContainer.style.display = 'block';
     });
     
     // Fallback if AR doesn't initialize after a timeout
@@ -85,12 +85,13 @@ function initARExperience() {
             console.log('AR initialization timeout - offering fallback mode');
             
             // Show fallback UI if AR didn't initialize
-            fallbackUI.classList.remove('hidden');
             
             // If no specific error occurred, show a generic message
             if (!arErrorOccurred) {
-                document.getElementById('error-message').textContent = 'AR initialization timed out. Your device may not support AR features.';
-                document.getElementById('error-container').style.display = 'block';
+                const errorMsg = document.getElementById('error-message');
+                const errorContainer = document.getElementById('error-container');
+                if (errorMsg) errorMsg.textContent = 'AR initialization timed out. Your device may not support AR features.';
+                if (errorContainer) errorContainer.style.display = 'block';
             }
         }
     }, 8000); // 8 second timeout
